@@ -14,7 +14,7 @@ class Dataset:
         self.max_len = max_len
         self.df = pd.read_csv(self.config.input_path)
         if self.config.x_column not in self.df.keys() or self.config.y_column not in self.df.keys():
-            raise ValueError(f'Make sure columns {self.config.x_column} and {self.config.y_column} are present in df')
+            raise ValueError(f'Make sure columns `{self.config.x_column}` and `{self.config.y_column}` are present in df')
         self.label_encoder = None
         self.encode_labels()
 

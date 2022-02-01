@@ -24,12 +24,14 @@ class BERTClassifier:
             self.model = None
             self.history = None
             if os.path.exists(self.config.output_dir) and os.listdir(self.config.output_dir):
-                raise ValueError(f"Output directory ({self.config.output_dir}) already exists and is not empty.")
+                raise FileExistsError(f"Output directory '{self.config.output_dir}' already exists and is not empty.")
             if not os.path.exists(self.config.output_dir):
                 os.makedirs(self.config.output_dir)
         else:
             if not os.path.exists(self.config.output_dir):
-                raise ValueError(f"Model directory ({self.config.output_dir}) does not exists.")
+                raise FileNotFoundError(f"Model directory '{self.config.output_dir}' does not exists.")
+            if not os.path.exists(os.path.join(self.config.output_dir, 'saved_model')):
+                raise FileNotFoundError(f"SavedModel not found in directory '{self.config.output_dir}'.")
             self.model = tf.keras.models.load_model(os.path.join(self.config.output_dir, 'saved_model'))
 
     def _create_model(self) -> tf.keras.Model:
@@ -68,12 +70,15 @@ class BERTClassifier:
 
         return model
 
-    def train(self):
-        """Start training model using given `ExperimentConfig`"""
-        # create data
+    def _get_data(self):
         dataset = Dataset(self.config.dataset, self.config.max_len)
         train_data, valid_data = dataset.generate()
         self.config.labels = list(dataset.label_encoder.classes_)
+        return train_data, valid_data
+
+    def train(self):
+        """Start training model using given `ExperimentConfig`"""
+        train_data, valid_data = self._get_data()
 
         # create model
         self.model = self._create_model()
